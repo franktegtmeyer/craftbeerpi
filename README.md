@@ -1,9 +1,7 @@
 # CraftBeerPI v2.1
 The Raspberry PI base Home Brewing Software
 
-Website: [www.CraftBeerPI.com](http://www.CraftBeerPI.com)
-
-Facebook: [www.facebook.com/craftbeerpi/](https://www.facebook.com/craftbeerpi/)
+Website: www.CraftBeerPI.com
 
 ## Features
 
@@ -55,11 +53,9 @@ http://www.homebrewtalk.com.br/showthread.php?t=408096
 
 ## Screenshots
 
-![ScreenShot](http://craftbeerpi.com/img/Img1.png)
+![ScreenShot](https://raw.githubusercontent.com/Manuel83/craftbeerpi/master/docs/images/Screenshot1.png)
+![ScreenShot](https://raw.githubusercontent.com/Manuel83/craftbeerpi/master/docs/images/Screenshot2.png)
 
-
-## YouTube Video
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/2zM2dnFyB5w/0.jpg)](http://www.youtube.com/watch?v=2zM2dnFyB5w)
 
 ## Installation
 
@@ -136,5 +132,73 @@ After this you will asked for the MashTun and the Boil kettle of the brew.
 * Raspberry Pi (Model A+, 2 Model B) + Power Cable + SDCard (Pollin.de, Conrad.de, Reichelt.de)
 
 
-![ScreenShot](https://raw.githubusercontent.com/Manuel83/craftbeerpi/master/docs/images/Hardwaresetup.png)
-![ScreenShot](https://raw.githubusercontent.com/Manuel83/craftbeerpi/master/docs/images/Hardwaresetup2.png)
+![ScreenShot](http://craftbeerpi.com/img/Img1.png)
+
+## Start CraftBeerPI in Kiosk Mode
+
+The Kiosk Mode requires that CraftBeerPI is start at boot.
+Make sure that SSH is still enabled otherwise its not possible remove this kiosk mode.
+
+
+```
+sudo raspi-config
+```
+
+Change your boot to desktop environment. This will start-up the GUI instead of the CLI and automatically will login to user 'pi'.
+
+Install Chromium Browser
+```
+sudo apt-get install chromium
+```
+
+Change startup Config
+
+```
+sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
+```
+
+Change the file that it looks like this
+
+```
+@lxpanel --profile LXDE
+@pcmanfm --desktop --profile LXDE
+@xset s off
+@xset -dpms
+@xset s noblank
+@sed -i 's/"exited_cleanly": false/"exited_cleanly": true/' ~/.config/chromium/Default/Preferences
+@chromium --noerrdialogs --kiosk http://localhost:5000 --incognito
+```
+
+Reboot the Raspberry PI
+
+```
+sudo reboot
+```
+
+### Implementing a custom thermometer protocol
+Out of the box CraftBeerPI is supporting 1-wire thermometers.
+But integrating a custom thermometer protocol is quite simple.
+
+Just overwrite 3 simple method of the w1_thermometer.py
+
+```
+## This method gets invoked only once during start time.
+## This is the right place if the Thermometer needs to be initialize
+## during server start.
+@brewinit()
+def initThermo():
+    #Custom Code here
+    # no return value
+
+## Define which Thermometers are available
+## Return the id/name of available thermometers as string array
+def getW1Thermometer():
+    ## Custom code here!
+    return ["DummySensor1","DummySensor2"]
+
+## This method gets invoked every 5 seconds for each thermometer
+## Just read the current value and return it a float
+def tempData1Wire(tempSensorId):
+    ## Custom code here!
+    return 100.00
+```
